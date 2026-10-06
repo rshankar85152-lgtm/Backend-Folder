@@ -2,3 +2,7 @@
 .env
 .env.*
 !.env.example
+_pycache_/
+.vscode/
+android/
+node_modules/
