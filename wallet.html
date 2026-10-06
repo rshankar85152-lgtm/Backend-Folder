@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Demo Wallet</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #edf2ef;
+            margin: 0;
+            padding: 30px 16px;
+        }
+
+        .wallet {
+            max-width: 520px;
+            margin: auto;
+            padding: 24px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 18px #0002;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        h2 {
+            margin: 0;
+        }
+
+        .balance {
+            margin-top: 10px;
+            padding: 16px;
+            background: #e1f3e8;
+            border-radius: 8px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .wallet-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .wallet-actions button {
+            margin: 0;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .summary-card {
+            padding: 14px;
+            background: #f5f8f6;
+            border: 1px solid #dce7df;
+            border-radius: 8px;
+        }
+
+        .summary-card > span {
+            display: block;
+            color: #52635a;
+            font-size: 13px;
+        }
+
+        .summary-card strong {
+            display: block;
+            margin-top: 6px;
+            color: #194a32;
+            font-size: 20px;
+        }
+
+        .send-form {
+            margin-top: 22px;
+        }
+
+        .topup-form {
+            margin-top: 12px;
+            padding: 14px;
+            background: #f5f8f6;
+            border: 1px solid #dce7df;
+            border-radius: 8px;
+        }
+
+        .topup-form[hidden] {
+            display: none;
+        }
+
+        .demo-note {
+            margin: 0 0 10px;
+            color: #52635a;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        #topupButton {
+            margin-top: 10px;
+        }
+
+        .filters {
+            margin: 14px 0 10px;
+            padding: 16px;
+            background: #f5f8f6;
+            border: 1px solid #dce7df;
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        .send-form input + input,
+        .filter-grid {
+            margin-top: 12px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .filter-grid input {
+            margin-top: 0;
+        }
+
+        button {
+            border: 0;
+            border-radius: 6px;
+            background: #18794e;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            cursor: wait;
+            opacity: 0.7;
+        }
+
+        #sendButton {
+            margin-top: 12px;
+        }
+
+        .secondary-button {
+            margin-top: 10px;
+            background: #e7eee9;
+            color: #194a32;
+        }
+
+        #message {
+            min-height: 20px;
+            font-weight: bold;
+        }
+
+        #resultSummary {
+            margin: 10px 0;
+            color: #52635a;
+            font-size: 14px;
+        }
+
+        #history {
+            display: grid;
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        #history li {
+            border: 1px solid #e2e9e4;
+            border-radius: 8px;
+        }
+
+        .transaction-entry {
+            padding: 12px;
+        }
+
+        .transaction-summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .transaction-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .transaction-title {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .transaction-kind {
+            display: inline-block;
+            margin-right: 6px;
+            color: #52635a;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .transaction-status {
+            flex: 0 0 auto;
+            font-weight: bold;
+        }
+
+        .transaction-status.success {
+            color: #18794e;
+        }
+
+        .transaction-status.failed {
+            color: #b42318;
+        }
+
+        .transaction-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e9e4;
+        }
+
+        .transaction-detail span {
+            display: block;
+            color: #52635a;
+            font-size: 12px;
+        }
+
+        .transaction-detail strong {
+            display: block;
+            margin-top: 3px;
+            overflow-wrap: anywhere;
+            font-size: 14px;
+        }
+
+        @media (max-width: 420px) {
+            body {
+                padding: 16px 10px;
+            }
+
+            .wallet {
+                padding: 18px;
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="wallet">
+        <h1>Demo Wallet</h1>
+
+        <p>Available balance</p>
+        <div class="balance">₹<span id="balance">...</span></div>
+
+        <div class="wallet-actions">
+            <button id="showTopupButton" type="button">Add Demo Money</button>
+        </div>
+        <form id="topupForm" class="topup-form" hidden>
+            <p class="demo-note">Demo only: balance is increased for testing. No real payment is charged.</p>
+            <label for="topupAmount">Amount to add (₹)</label>
+            <input id="topupAmount" type="number" min="0.01" max="9999999999.99" step="0.01" required>
+            <button id="topupButton" type="submit">Add to Demo Balance</button>
+        </form>
+
+        <section class="summary-grid" aria-label="This month's spending">
+            <div class="summary-card">
+                <span>Spent this month</span>
+                <strong>₹<span id="monthlySpent">...</span></strong>
+            </div>
+            <div class="summary-card">
+                <span>Successful sends</span>
+                <strong id="monthlySendCount">...</strong>
+            </div>
+        </section>
+
+        <div class="send-form">
+            <input id="receiver" type="text" placeholder="Receiver name" maxlength="100" aria-label="Receiver name">
+            <input id="amount" type="number" placeholder="Amount" min="0.01" step="0.01" aria-label="Amount">
+
+            <button id="sendButton" type="button">Send Money</button>
+        </div>
+
+        <p id="message" role="status" aria-live="polite"></p>
+
+        <h2>Transactions</h2>
+        <section class="filters" aria-label="Search and filter transactions">
+            <label for="transactionSearch">Search by receiver</label>
+            <input id="transactionSearch" type="search" maxlength="100" placeholder="Type a receiver name">
+            <div class="filter-grid">
+                <div>
+                    <label for="dateFrom">From date</label>
+                    <input id="dateFrom" type="date">
+                </div>
+                <div>
+                    <label for="dateTo">To date</label>
+                    <input id="dateTo" type="date">
+                </div>
+            </div>
+            <button id="clearFiltersButton" class="secondary-button" type="button">Clear filters</button>
+        </section>
+        <p id="resultSummary" aria-live="polite"></p>
+        <ul id="history"></ul>
+    </main>
+
+    <script>
+        const balanceText = document.getElementById("balance");
+        const receiverInput = document.getElementById("receiver");
+        const amountInput = document.getElementById("amount");
+        const topupForm = document.getElementById("topupForm");
+        const topupAmountInput = document.getElementById("topupAmount");
+        const topupButton = document.getElementById("topupButton");
+        const searchInput = document.getElementById("transactionSearch");
+        const dateFromInput = document.getElementById("dateFrom");
+        const dateToInput = document.getElementById("dateTo");
+        const message = document.getElementById("message");
+        const resultSummary = document.getElementById("resultSummary");
+        const history = document.getElementById("history");
+        const sendButton = document.getElementById("sendButton");
+        let searchTimeout;
+        let latestLoad = 0;
+
+        sendButton.addEventListener("click", sendMoney);
+        document.getElementById("showTopupButton").addEventListener("click", () => {
+            topupForm.hidden = !topupForm.hidden;
+            if (!topupForm.hidden) {
+                topupAmountInput.focus();
+            }
+        });
+        topupForm.addEventListener("submit", addDemoMoney);
+        searchInput.addEventListener("input", () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(loadWallet, 250);
+        });
+        dateFromInput.addEventListener("change", () => {
+            dateToInput.min = dateFromInput.value;
+            loadWallet();
+        });
+        dateToInput.addEventListener("change", () => {
+            dateFromInput.max = dateToInput.value;
+            loadWallet();
+        });
+        document.getElementById("clearFiltersButton").addEventListener("click", () => {
+            searchInput.value = "";
+            dateFromInput.value = "";
+            dateToInput.value = "";
+            dateFromInput.max = "";
+            dateToInput.min = "";
+            loadWallet();
+        });
+
+        loadWallet();
+
+        async function loadWallet() {
+            const requestId = ++latestLoad;
+            const params = new URLSearchParams();
+            if (searchInput.value.trim()) {
+                params.set("search", searchInput.value.trim());
+            }
+            if (dateFromInput.value) {
+                params.set("from", dateFromInput.value);
+            }
+            if (dateToInput.value) {
+                params.set("to", dateToInput.value);
+            }
+            const query = params.toString();
+            resultSummary.textContent = "Loading transactions...";
+
+            try {
+                const response = await fetch(`/api/wallet${query ? `?${query}` : ""}`);
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || "Wallet data could not be loaded.");
+                }
+                if (requestId !== latestLoad) {
+                    return;
+                }
+
+                balanceText.textContent = Number(data.balance).toFixed(2);
+                document.getElementById("monthlySpent").textContent =
+                    Number(data.summary?.monthlySpent || 0).toFixed(2);
+                document.getElementById("monthlySendCount").textContent =
+                    Number(data.summary?.monthlySendCount || 0);
+                history.replaceChildren();
+                data.transactions.forEach(transaction => history.append(addHistory(transaction)));
+                const count = data.transactions.length;
+                resultSummary.textContent = data.hasMore
+                    ? `Showing the latest ${data.limit} matches. Narrow your search or date range to see other results.`
+                    : `${count} transaction${count === 1 ? "" : "s"} found.`;
+            } catch (error) {
+                if (requestId === latestLoad) {
+                    history.replaceChildren();
+                    resultSummary.textContent = "Transactions could not be loaded.";
+                    showResult(error.message, false);
+                }
+            }
+        }
+
+        async function addDemoMoney(event) {
+            event.preventDefault();
+            const amount = Number(topupAmountInput.value);
+            if (!Number.isFinite(amount) || amount <= 0) {
+                showResult("Demo balance mein jodne ke liye valid amount enter karein.", false);
+                return;
+            }
+
+            topupButton.disabled = true;
+            try {
+                const response = await fetch("/api/wallet/topups", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ amount })
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || "Demo balance could not be added.");
+                }
+
+                topupForm.reset();
+                topupForm.hidden = true;
+                await loadWallet();
+                showResult(data.message, true);
+            } catch (error) {
+                showResult(error.message, false);
+            } finally {
+                topupButton.disabled = false;
+            }
+        }
+
+        async function sendMoney() {
+            const receiver = receiverInput.value.trim();
+            const amount = Number(amountInput.value);
+
+            if (receiver === "" || !Number.isFinite(amount) || amount <= 0) {
+                showResult("Name aur valid amount enter karein.", false);
+                return;
+            }
+
+            sendButton.disabled = true;
+            try {
+                const response = await fetch("/api/wallet/transactions", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ receiver, amount })
+                });
+                const data = await response.json();
+
+                if (data.balance !== undefined) {
+                    balanceText.textContent = Number(data.balance).toFixed(2);
+                }
+                if (data.transaction) {
+                    receiverInput.value = "";
+                    amountInput.value = "";
+                    await loadWallet();
+                    showResult(`Success: ₹${Number(data.transaction.amount).toFixed(2)} ${receiver} ko bheje.`, true);
+                    return;
+                }
+                if (data.error) {
+                    showResult(data.error, false);
+                    if (data.error.includes("balance kam hai")) {
+                        await loadWallet();
+                    }
+                    return;
+                }
+                throw new Error("Transaction could not be completed.");
+            } catch (error) {
+                showResult(error.message, false);
+            } finally {
+                sendButton.disabled = false;
+            }
+        }
+
+        function showResult(text, success) {
+            message.textContent = text;
+            message.style.color = success ? "green" : "red";
+        }
+
+        function addHistory(transaction) {
+            const item = document.createElement("li");
+            const entry = document.createElement("details");
+            entry.className = "transaction-entry";
+            const summary = document.createElement("summary");
+            summary.className = "transaction-summary";
+
+            const title = document.createElement("span");
+            title.className = "transaction-title";
+            const kind = transaction.transaction_type === "topup" ? "Added" : "Sent";
+            const receiver = transaction.transaction_type === "topup"
+                ? "Demo wallet"
+                : transaction.receiver;
+            const kindLabel = document.createElement("span");
+            kindLabel.className = "transaction-kind";
+            kindLabel.textContent = kind;
+            title.append(kindLabel, document.createTextNode(
+                `₹${Number(transaction.amount).toFixed(2)} ${transaction.transaction_type === "topup" ? "added" : `to ${receiver}`}`
+            ));
+
+            const status = document.createElement("span");
+            status.className = `transaction-status ${transaction.status === "success" ? "success" : "failed"}`;
+            status.textContent = transaction.status === "success" ? "Success" : "Failed";
+
+            summary.append(title, status);
+            entry.append(summary);
+            const detailGrid = document.createElement("div");
+            detailGrid.className = "transaction-detail-grid";
+            const date = transaction.created_at
+                ? new Date(transaction.created_at).toLocaleString()
+                : "Not available";
+            [
+                ["Transaction ID", `#${transaction.id}`],
+                ["Type", transaction.transaction_type === "topup" ? "Demo top-up" : "Money sent"],
+                ["Amount", `₹${Number(transaction.amount).toFixed(2)}`],
+                ["Receiver", receiver],
+                ["Status", status.textContent],
+                ["Date", date]
+            ].forEach(([label, value]) => {
+                const detail = document.createElement("div");
+                detail.className = "transaction-detail";
+                const detailLabel = document.createElement("span");
+                detailLabel.textContent = label;
+                const detailValue = document.createElement("strong");
+                detailValue.textContent = value;
+                detail.append(detailLabel, detailValue);
+                detailGrid.append(detail);
+            });
+            entry.append(detailGrid);
+            item.append(entry);
+            return item;
+        }
+    </script>
+</body>
+</html>
